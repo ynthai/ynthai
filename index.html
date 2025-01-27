@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Лабиринт на «Соколе Тысячелетия»</title>
+    <link rel="stylesheet" href="styles.css"> <!-- Подключаем CSS -->
+    <link rel="icon" href="favicon.ico" type="image/x-icon"> <!-- Добавляем favicon -->
+</head>
+<body>
+    <canvas id="mazeCanvas"></canvas>
+    <div id="winPopup" class="hidden">
+        <h1>Поздравляем!</h1>
+        <p>Вы нашли выход из лабиринта.</p>
+        <button onclick="resetGame()">Играть снова</button>
+    </div>
+    <!-- Подключаем Hammer.js для обработки свайпов -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
+    <script src="maze.js"></script> <!-- Подключаем JavaScript -->
+</body>
+</html>
