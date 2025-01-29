@@ -1,0 +1,48 @@
+body {
+    margin: 0;
+    overflow: hidden;
+    background: #000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    font-family: Arial, sans-serif;
+}
+
+canvas {
+    background: #34495E;
+    border: 2px solid #2C3E50;
+}
+
+#winPopup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(44, 62, 80, 0.9);
+    color: #F39C12;
+    padding: 20px;
+    border: 2px solid #2980B9;
+    border-radius: 10px;
+    text-align: center;
+    z-index: 1000;
+    box-shadow: 0 0 20px rgba(41, 128, 185, 0.5);
+}
+
+#winPopup.hidden {
+    display: none;
+}
+
+#winPopup button {
+    background: #2ECC71;
+    color: #FFF;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+#winPopup button:hover {
+    background: #27AE60;
+}
