@@ -1,0 +1,39 @@
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    background-color: #f0f0f0;
+}
+
+.container {
+    display: grid;
+    gap: 2px;
+}
+
+.row {
+    display: flex;
+}
+
+.cell {
+    width: 50px;
+    height: 50px;
+    background-color: #ccc;
+}
+
+.wall {
+    background-color: #000;
+}
+
+.start {
+    background-color: #0f0;
+}
+
+.finish {
+    background-color: #f00;
+}
+
+.player {
+    background-color: #ff0;
+}
