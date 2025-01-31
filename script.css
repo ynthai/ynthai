@@ -1,0 +1,129 @@
+// script.js
+document.addEventListener('DOMContentLoaded', () => {
+    const plane = document.getElementById('plane');
+    let isFlying = false;
+    let windInterval;
+
+    function fly() {
+        if (!isFlying) {
+            isFlying = true;
+            plane.style.transition = 'transform 2s';
+            plane.style.transform = 'translate(-50%, -150%) rotate(45deg)';
+            
+            setTimeout(() => {
+                plane.style.transition = 'none';
+                plane.style.transform = 'translate(-50%, -50%) rotate(45deg)';
+                isFlying = false;
+            }, 2000);
+        }
+    }
+
+    // Wind effect
+    function applyWindEffect() {
+        const windStrengthX = (Math.random() - 0.5) * 10; // Random value between -5 and 5
+        const windStrengthY = (Math.random() - 0.5) * 10; // Random value between -5 and 5
+        
+        let currentTransform = plane.style.transform;
+        let translateValues = currentTransform.match(/translate\(([^)]+)\)/);
+        
+        let translateX = 0;
+        let translateY = 0;
+
+        if (translateValues && translateValues[1]) {
+            [translateX, translateY] = translateValues[1].split(',').map(val => parseFloat(val));
+        }
+
+        translateX += windStrengthX;
+        translateY += windStrengthY;
+
+        // Keep the plane within the screen bounds
+        const planeRect = plane.getBoundingClientRect();
+        const containerRect = document.getElementById('game-container').getBoundingClientRect();
+
+        if (translateX + planeRect.width / 2 > containerRect.width || translateX - planeRect.width / 2 < 0) {
+            translateX -= windStrengthX;
+        }
+        if (translateY + planeRect.height / 2 > containerRect.height || translateY - planeRect.height / 2 < 0) {
+            translateY -= windStrengthY;
+        }
+
+        plane.style.transform = `translate(${translateX}px, ${translateY}px) rotate(45deg)`;
+    }
+
+    function startWindEffect() {
+        windInterval = setInterval(applyWindEffect, 500); // Apply wind effect every 500ms
+    }
+
+    function stopWindEffect() {
+        clearInterval(windInterval);
+    }
+
+    // For swipe gesture support
+    let touchStartX = 0;
+    let touchEndX = 0;
+    let touchStartY = 0;
+    let touchEndY = 0;
+
+    document.addEventListener('touchstart', e => {
+        touchStartX = e.changedTouches[0].screenX;
+        touchStartY = e.changedTouches[0].screenY;
+    });
+
+    document.addEventListener('touchend', e => {
+        touchEndX = e.changedTouches[0].screenX;
+        touchEndY = e.changedTouches[0].screenY;
+        handleSwipe();
+    });
+
+    function handleSwipe() {
+        let currentTransform = plane.style.transform;
+        let translateValues = currentTransform.match(/translate\(([^)]+)\)/);
+
+        let translateX = 0;
+        let translateY = 0;
+
+        if (translateValues && translateValues[1]) {
+            [translateX, translateY] = translateValues[1].split(',').map(val => parseFloat(val));
+        }
+
+        if (touchStartY < touchEndY - 50) { // Swipe down
+            translateY += 10;
+        } else if (touchStartY > touchEndY + 50) { // Swipe up
+            translateY -= 10;
+        } else if (touchStartX < touchEndX - 50) { // Swipe right
+            translateX += 10;
+        } else if (touchStartX > touchEndX + 50) { // Swipe left
+            translateX -= 10;
+        }
+
+        plane.style.transform = `translate(${translateX}px, ${translateY}px) rotate(45deg)`;
+
+        // Keep the plane within the screen bounds
+        const planeRect = plane.getBoundingClientRect();
+        const containerRect = document.getElementById('game-container').getBoundingClientRect();
+
+        if (translateX + planeRect.width / 2 > containerRect.width || translateX - planeRect.width / 2 < 0) {
+            translateX -= (translateX + planeRect.width / 2 > containerRect.width) ? 10 : -10;
+        }
+        if (translateY + planeRect.height / 2 > containerRect.height || translateY - planeRect.height / 2 < 0) {
+            translateY -= (translateY + planeRect.height / 2 > containerRect.height) ? 10 : -10;
+        }
+
+        plane.style.transform = `translate(${translateX}px, ${translateY}px) rotate(45deg)`;
+    }
+
+    // For desktop support
+    document.addEventListener('mousedown', e => {
+        touchStartX = e.screenX;
+        touchStartY = e.screenY;
+    });
+
+    document.addEventListener('mouseup', e => {
+        touchEndX = e.screenX;
+        touchEndY = e.screenY;
+        handleSwipe();
+    });
+
+    // Start the wind effect when the game starts
+    startWindEffect();
+});
