@@ -3,17 +3,77 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Puzzle & Dragons Clone</title>
-  <link rel="stylesheet" href="styles.css">
+  <title>Puzzle Game</title>
+  <style>
+    /* Встраиваем CSS прямо здесь */
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f4;
+    }
+
+    #gameBoard {
+      display: grid;
+      grid-template-columns: repeat(6, 50px);
+      grid-template-rows: repeat(5, 50px);
+      gap: 5px;
+      margin: 20px auto;
+      width: fit-content;
+    }
+
+    .tile {
+      width: 50px;
+      height: 50px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border: 1px solid #ccc;
+      background-size: cover;
+      background-position: center;
+    }
+  </style>
 </head>
 <body>
-  <div id="game-container">
-    <h1>Puzzle & Dragons Clone</h1>
-    <div id="grid"></div>
-    <div id="info">
-      <p>Score: <span id="score">0</span></p>
-    </div>
-  </div>
-  <script src="script.js"></script>
+  <h1>Puzzle Game</h1>
+  <div id="gameBoard"></div> <!-- Контейнер для игрового поля -->
+
+  <script>
+    // JavaScript код будет здесь
+    const gameBoard = document.getElementById('gameBoard');
+
+    if (!gameBoard) {
+      console.error("Элемент с ID 'gameBoard' не найден!");
+    } else {
+      const colors = ['red', 'blue', 'green', 'yellow', 'purple'];
+      const images = {
+        red: 'https://via.placeholder.com/50/FF0000', // Заглушка для красного цвета
+        blue: 'https://via.placeholder.com/50/0000FF', // Заглушка для синего цвета
+        green: 'https://via.placeholder.com/50/00FF00', // Заглушка для зеленого цвета
+        yellow: 'https://via.placeholder.com/50/FFFF00', // Заглушка для желтого цвета
+        purple: 'https://via.placeholder.com/50/800080' // Заглушка для фиолетового цвета
+      };
+
+      function createBoard() {
+        for (let i = 0; i < 30; i++) { // 6x5 сетка
+          const tile = document.createElement('div');
+          tile.classList.add('tile');
+
+          const randomColor = colors[Math.floor(Math.random() * colors.length)];
+          tile.style.backgroundColor = randomColor;
+
+          // Добавляем фоновое изображение
+          if (images[randomColor]) {
+            tile.style.backgroundImage = `url(${images[randomColor]})`;
+          }
+
+          gameBoard.appendChild(tile);
+        }
+      }
+
+      createBoard();
+    }
+  </script>
 </body>
 </html>
