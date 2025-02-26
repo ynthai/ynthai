@@ -60,11 +60,13 @@
           tile.classList.add('tile');
 
           const randomColor = colors[Math.floor(Math.random() * colors.length)];
-          tile.style.backgroundColor = randomColor;
 
-          // Добавляем фоновое изображение
+          // Если есть изображение для цвета, используем его
           if (images[randomColor]) {
             tile.style.backgroundImage = `url(${images[randomColor]})`;
+          } else {
+            // Иначе устанавливаем просто цвет фона
+            tile.style.backgroundColor = randomColor;
           }
 
           gameBoard.appendChild(tile);
