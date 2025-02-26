@@ -31,9 +31,6 @@
       font-weight: bold;
       cursor: pointer;
     }
-    .cell.empty {
-      background-color: #ccc;
-    }
     .cell.selected {
       background-color: #ffcccb;
     }
@@ -53,43 +50,15 @@
       for (let i = 0; i < gridSize * gridSize; i++) {
         const cell = document.createElement('div');
         cell.classList.add('cell');
-        cell.dataset.index = i;
-        if (i >= gridSize) { // Нижние ячейки заполняются цветами
-          cell.textContent = getRandomColor();
-        }
+        cell.textContent = getRandomColor();
         cell.addEventListener('click', () => handleCellClick(cell));
         grid.appendChild(cell);
       }
-      ensureNoFourInARow(); // Убедимся, что нет четырех одинаковых элементов подряд
     }
 
     // Генерируем случайный цвет
     function getRandomColor() {
       return colors[Math.floor(Math.random() * colors.length)];
-    }
-
-    // Проверяем и исправляем генерацию с четырьмя одинаковыми элементами подряд
-    function ensureNoFourInARow() {
-      const grid = Array.from(document.querySelectorAll('.cell'));
-      for (let row = 0; row < gridSize; row++) {
-        for (let col = 0; col <= gridSize - 4; col++) {
-          const index = row * gridSize + col;
-          const cells = Array.from({ length: 4 }, (_, i) => grid[index + i]);
-          if (cells.every(cell => cell.textContent === cells[0].textContent && cells[0].textContent !== '')) {
-            cells[Math.floor(Math.random() * 4)].textContent = getRandomColor();
-          }
-        }
-      }
-
-      for (let col = 0; col < gridSize; col++) {
-        for (let row = 0; row <= gridSize - 4; row++) {
-          const index = row * gridSize + col;
-          const cells = Array.from({ length: 4 }, (_, i) => grid[index + i * gridSize]);
-          if (cells.every(cell => cell.textContent === cells[0].textContent && cells[0].textContent !== '')) {
-            cells[Math.floor(Math.random() * 4)].textContent = getRandomColor();
-          }
-        }
-      }
     }
 
     // Обработка клика по ячейке
@@ -115,7 +84,7 @@
 
     // Проверяем наличие совпадений
     function checkMatches() {
-      const grid = Array.from(document.querySelectorAll('.cell'));
+      const grid = document.querySelectorAll('.cell');
       let hasMatch = false;
 
       // Проверяем горизонтальные совпадения
@@ -124,7 +93,7 @@
           const index = row * gridSize + col;
           const cells = Array.from({ length: 4 }, (_, i) => grid[index + i]);
           if (cells.every(cell => cell.textContent === cells[0].textContent && cells[0].textContent !== '')) {
-            cells.forEach(cell => cell.textContent = '');
+            cells.forEach(cell => cell.textContent = ''); // Удаляем совпадения
             hasMatch = true;
           }
         }
@@ -136,36 +105,9 @@
           const index = row * gridSize + col;
           const cells = Array.from({ length: 4 }, (_, i) => grid[index + i * gridSize]);
           if (cells.every(cell => cell.textContent === cells[0].textContent && cells[0].textContent !== '')) {
-            cells.forEach(cell => cell.textContent = '');
+            cells.forEach(cell => cell.textContent = ''); // Удаляем совпадения
             hasMatch = true;
           }
-        }
-      }
-
-      // Проверяем любые соседние совпадения
-      for (let i = 0; i < gridSize * gridSize; i++) {
-        const cell = grid[i];
-        if (!cell.textContent) continue;
-
-        const neighbors = [
-          grid[i - 1], // Левый
-          grid[i + 1], // Правый
-          grid[i - gridSize], // Верхний
-          grid[i + gridSize], // Нижний
-          grid[i - gridSize - 1], // Левый верхний
-          grid[i - gridSize + 1], // Правый верхний
-          grid[i + gridSize - 1], // Левый нижний
-          grid[i + gridSize + 1] // Правый нижний
-        ];
-
-        const matchingNeighbors = neighbors.filter(
-          neighbor => neighbor && neighbor.textContent === cell.textContent
-        );
-
-        if (matchingNeighbors.length >= 3) {
-          cell.textContent = '';
-          matchingNeighbors.forEach(neighbor => neighbor.textContent = '');
-          hasMatch = true;
         }
       }
 
@@ -176,33 +118,48 @@
 
     // Заполняем пустые ячейки новыми элементами
     function refillGrid() {
-      const grid = Array.from(document.querySelectorAll('.cell'));
-      for (let col = 0; col < gridSize; col++) {
-        for (let row = gridSize - 1; row >= 0; row--) {
-          const index = row * gridSize + col;
-          if (!grid[index].textContent) {
-            for (let i = row - 1; i >= 0; i--) {
-              const aboveIndex = i * gridSize + col;
-              if (grid[aboveIndex].textContent) {
-                grid[index].textContent = grid[aboveIndex].textContent;
-                grid[aboveIndex].textContent = '';
-                break;
-              }
-            }
-          }
+      const grid = document.querySelectorAll('.cell');
+      grid.forEach(cell => {
+        if (cell.textContent === '') {
+          cell.textContent = getRandomColor();
         }
+      });
+    }
+
+    // Добавляем управление клавишами
+    document.addEventListener('keydown', (event) => {
+      if (!selectedCell) return;
+
+      const currentIndex = Array.from(document.querySelectorAll('.cell')).indexOf(selectedCell);
+      const row = Math.floor(currentIndex / gridSize);
+      const col = currentIndex % gridSize;
+
+      let targetIndex = currentIndex;
+
+      switch (event.key) {
+        case 'ArrowUp':
+          if (row > 0) targetIndex -= gridSize;
+          break;
+        case 'ArrowDown':
+          if (row < gridSize - 1) targetIndex += gridSize;
+          break;
+        case 'ArrowLeft':
+          if (col > 0) targetIndex -= 1;
+          break;
+        case 'ArrowRight':
+          if (col < gridSize - 1) targetIndex += 1;
+          break;
+        default:
+          return;
       }
 
-      // Добавляем новые элементы сверху
-      for (let col = 0; col < gridSize; col++) {
-        for (let row = 0; row < gridSize; row++) {
-          const index = row * gridSize + col;
-          if (!grid[index].textContent && row === 0) {
-            grid[index].textContent = getRandomColor();
-          }
-        }
+      const targetCell = document.querySelectorAll('.cell')[targetIndex];
+      if (targetCell) {
+        swapCells(selectedCell, targetCell);
+        selectedCell.classList.remove('selected');
+        selectedCell = null;
       }
-    }
+    });
 
     // Инициализация игры
     createGrid();
