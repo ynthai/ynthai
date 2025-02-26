@@ -84,16 +84,28 @@
 
     // Проверяем наличие совпадений
     function checkMatches() {
-      const grid = Array.from(document.querySelectorAll('.cell'));
+      const grid = document.querySelectorAll('.cell');
       let hasMatch = false;
 
-      // Находим все группы одинаковых элементов
-      const visited = new Array(gridSize * gridSize).fill(false);
-      for (let i = 0; i < gridSize * gridSize; i++) {
-        if (!visited[i] && grid[i].textContent !== '') {
-          const group = findConnectedGroup(i, grid[i].textContent, visited);
-          if (group.length >= 4) {
-            group.forEach(index => (grid[index].textContent = '')); // Удаляем группу
+      // Проверяем горизонтальные совпадения
+      for (let row = 0; row < gridSize; row++) {
+        for (let col = 0; col <= gridSize - 4; col++) {
+          const index = row * gridSize + col;
+          const cells = Array.from({ length: 4 }, (_, i) => grid[index + i]);
+          if (cells.every(cell => cell.textContent === cells[0].textContent && cells[0].textContent !== '')) {
+            cells.forEach(cell => cell.textContent = ''); // Удаляем совпадения
+            hasMatch = true;
+          }
+        }
+      }
+
+      // Проверяем вертикальные совпадения
+      for (let col = 0; col < gridSize; col++) {
+        for (let row = 0; row <= gridSize - 4; row++) {
+          const index = row * gridSize + col;
+          const cells = Array.from({ length: 4 }, (_, i) => grid[index + i * gridSize]);
+          if (cells.every(cell => cell.textContent === cells[0].textContent && cells[0].textContent !== '')) {
+            cells.forEach(cell => cell.textContent = ''); // Удаляем совпадения
             hasMatch = true;
           }
         }
@@ -104,66 +116,14 @@
       }
     }
 
-    // Находим все связанные элементы одного цвета
-    function findConnectedGroup(index, color, visited) {
-      const group = [];
-      const stack = [index];
-      visited[index] = true;
-
-      while (stack.length > 0) {
-        const current = stack.pop();
-        group.push(current);
-
-        const neighbors = getNeighbors(current);
-        for (const neighbor of neighbors) {
-          if (!visited[neighbor] && grid[neighbor].textContent === color) {
-            stack.push(neighbor);
-            visited[neighbor] = true;
-          }
-        }
-      }
-
-      return group;
-    }
-
-    // Получаем соседние ячейки (сверху, снизу, слева, справа)
-    function getNeighbors(index) {
-      const row = Math.floor(index / gridSize);
-      const col = index % gridSize;
-      const neighbors = [];
-
-      if (row > 0) neighbors.push(index - gridSize); // Сверху
-      if (row < gridSize - 1) neighbors.push(index + gridSize); // Снизу
-      if (col > 0) neighbors.push(index - 1); // Слева
-      if (col < gridSize - 1) neighbors.push(index + 1); // Справа
-
-      return neighbors.filter(idx => idx >= 0 && idx < gridSize * gridSize);
-    }
-
     // Заполняем пустые ячейки новыми элементами
     function refillGrid() {
       const grid = document.querySelectorAll('.cell');
-      for (let col = 0; col < gridSize; col++) {
-        let emptySpaces = [];
-        for (let row = 0; row < gridSize; row++) {
-          const index = row * gridSize + col;
-          if (grid[index].textContent === '') {
-            emptySpaces.push(index);
-          }
+      grid.forEach(cell => {
+        if (cell.textContent === '') {
+          cell.textContent = getRandomColor();
         }
-
-        if (emptySpaces.length > 0) {
-          for (let i = emptySpaces.length - 1; i >= 0; i--) {
-            const newIndex = emptySpaces[i] - gridSize;
-            if (newIndex >= 0) {
-              grid[emptySpaces[i]].textContent = grid[newIndex].textContent;
-              grid[newIndex].textContent = '';
-            } else {
-              grid[emptySpaces[i]].textContent = getRandomColor();
-            }
-          }
-        }
-      }
+      });
     }
 
     // Добавляем управление клавишами
