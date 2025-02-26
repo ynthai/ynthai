@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Puzzle Game</title>
   <style>
-    /* Встраиваем CSS прямо здесь */
     body {
       font-family: Arial, sans-serif;
       text-align: center;
@@ -40,21 +39,21 @@
   <div id="gameBoard"></div> <!-- Контейнер для игрового поля -->
 
   <script>
-    // JavaScript код будет здесь
+    // Объявляем переменные в глобальной области видимости
     const gameBoard = document.getElementById('gameBoard');
+    const colors = ['red', 'blue', 'green', 'yellow', 'purple']; // Список цветов
+    const images = {
+      red: 'https://via.placeholder.com/50/FF0000', // Заглушка для красного цвета
+      blue: 'https://via.placeholder.com/50/0000FF', // Заглушка для синего цвета
+      green: 'https://via.placeholder.com/50/00FF00', // Заглушка для зеленого цвета
+      yellow: 'https://via.placeholder.com/50/FFFF00', // Заглушка для желтого цвета
+      purple: 'https://via.placeholder.com/50/800080' // Заглушка для фиолетового цвета
+    };
 
     if (!gameBoard) {
       console.error("Элемент с ID 'gameBoard' не найден!");
     } else {
-      const colors = ['red', 'blue', 'green', 'yellow', 'purple'];
-      const images = {
-        red: 'https://via.placeholder.com/50/FF0000', // Заглушка для красного цвета
-        blue: 'https://via.placeholder.com/50/0000FF', // Заглушка для синего цвета
-        green: 'https://via.placeholder.com/50/00FF00', // Заглушка для зеленого цвета
-        yellow: 'https://via.placeholder.com/50/FFFF00', // Заглушка для желтого цвета
-        purple: 'https://via.placeholder.com/50/800080' // Заглушка для фиолетового цвета
-      };
-
+      // Функция создания игрового поля
       function createBoard() {
         for (let i = 0; i < 30; i++) { // 6x5 сетка
           const tile = document.createElement('div');
@@ -72,6 +71,7 @@
         }
       }
 
+      // Вызываем функцию создания поля
       createBoard();
     }
   </script>
