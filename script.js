@@ -1,227 +1,160 @@
-const canvas = document.getElementById('mazeCanvas'); // Обновлено имя canvas
-const ctx = canvas.getContext('2d');
-let lastTime = performance.now();
-let xDown = null;
-let yDown = null;
-let walls = []; // Массив стен
-let stepsCount = 0;
-let startTime = Date.now();
-let player = {
-    x: 50,
-    y: 50,
-    width: 50,
-    height: 50,
-    speed: 5
-};
+// Константы
+const gridSize = 6;
+const colors = [
+  'pastel-red',
+  'pastel-blue',
+  'pastel-green',
+  'pastel-yellow',
+  'pastel-purple',
+  'pastel-orange',
+];
+let score = 0;
 
-// Игрок
-player = {
-    x: 50,
-    y: 50,
-    width: 50,
-    height: 50,
-    speed: 5
-};
+// Создаем игровое поле
+let grid = [];
+const gameGrid = document.getElementById('grid');
+const scoreBoard = document.getElementById('score-board');
 
-// Обработка свайпов
-function handleTouchStart(evt) {
-    const firstTouch = evt.touches[0];
-    xDown = firstTouch.clientX;
-    yDown = firstTouch.clientY;
+function createGrid() {
+  for (let i = 0; i < gridSize * gridSize; i++) {
+    const cell = document.createElement('div');
+    cell.classList.add('cell');
+    cell.dataset.index = i;
+    const randomColor = colors[Math.floor(Math.random() * colors.length)];
+    cell.classList.add(randomColor);
+    grid.push(randomColor);
+    gameGrid.appendChild(cell);
+  }
 }
 
-function handleTouchMove(evt) {
-    if (!xDown || !yDown) {
-        return;
+// Проверка комбинаций
+function checkMatches() {
+  let matches = [];
+
+  // По горизонтали
+  for (let row = 0; row < gridSize; row++) {
+    for (let col = 0; col <= gridSize - 3; col++) {
+      const index = row * gridSize + col;
+      if (
+        grid[index] &&
+        grid[index] === grid[index + 1] &&
+        grid[index] === grid[index + 2]
+      ) {
+        matches.push(index, index + 1, index + 2);
+      }
     }
-    const xUp = evt.touches[0].clientX;
-    const yUp = evt.touches[0].clientY;
-    const xDiff = xDown - xUp;
-    const yDiff = yDown - yUp;
-    if (Math.abs(xDiff) > Math.abs(yDiff)) {
-        if (xDiff > 0) {
-            // left swipe
-            movePlayer('left');
-        } else {
-            // right swipe
-            movePlayer('right');
-        }
-    } else {
-        if (yDiff > 0) {
-            // up swipe
-            movePlayer('up');
-        } else {
-            // down swipe
-            movePlayer('down');
-        }
+  }
+
+  // По вертикали
+  for (let col = 0; col < gridSize; col++) {
+    for (let row = 0; row <= gridSize - 3; row++) {
+      const index = row * gridSize + col;
+      if (
+        grid[index] &&
+        grid[index] === grid[index + gridSize] &&
+        grid[index] === grid[index + gridSize * 2]
+      ) {
+        matches.push(index, index + gridSize, index + gridSize * 2);
+      }
     }
-    // reset values
-    xDown = null;
-    yDown = null;
+  }
+
+  return matches;
 }
 
-function movePlayer(direction) {
-    let newX = player.x;
-    let newY = player.y;
+// Удаление совпадений
+function removeMatches(matches) {
+  matches.forEach(index => {
+    grid[index] = null;
+    const cell = document.querySelector(`.cell[data-index="${index}"]`);
+    cell.classList.remove(...colors);
+    cell.classList.add('remove');
+    setTimeout(() => {
+      cell.style.backgroundColor = '#e8f0fe';
+      cell.classList.remove('remove');
+    }, 300);
+  });
+  score += matches.length * 10; // Начисляем очки
+  scoreBoard.textContent = `Score: ${score}`;
+}
 
-    switch (direction) {
-        case 'left':
-            newX -= player.speed;
-            break;
-        case 'right':
-            newX += player.speed;
-            break;
-        case 'up':
-            newY -= player.speed;
-            break;
-        case 'down':
-            newY += player.speed;
-            break;
+// Добавление новых элементов
+function refillGrid() {
+  for (let i = 0; i < gridSize * gridSize; i++) {
+    if (!grid[i]) {
+      const randomColor = colors[Math.floor(Math.random() * colors.length)];
+      grid[i] = randomColor;
+      const cell = document.querySelector(`.cell[data-index="${i}"]`);
+      cell.classList.add(randomColor);
+    }
+  }
+}
+
+// Перемещение элементов
+let selectedCell = null;
+let selectedColor = null;
+
+function handleCellClick(e) {
+  const target = e.target;
+  const color = target.className.split(' ')[1];
+
+  if (selectedCell === null) {
+    selectedCell = target;
+    selectedColor = color;
+    target.style.border = '2px solid black';
+  } else {
+    const targetIndex = parseInt(target.dataset.index);
+    const sourceIndex = parseInt(selectedCell.dataset.index);
+
+    // Проверяем соседние ячейки
+    const diff = Math.abs(targetIndex - sourceIndex);
+    const isAdjacent =
+      diff === 1 && Math.floor(targetIndex / gridSize) === Math.floor(sourceIndex / gridSize) || // Горизонтально
+      diff === gridSize; // Вертикально
+
+    if (isAdjacent) {
+      // Меняем цвета
+      grid[sourceIndex] = color;
+      grid[targetIndex] = selectedColor;
+
+      selectedCell.classList.remove(selectedColor);
+      target.classList.remove(color);
+
+      selectedCell.classList.add(color);
+      target.classList.add(selectedColor);
+
+      // Проверяем совпадения
+      const matches = checkMatches();
+      if (matches.length > 0) {
+        removeMatches(matches);
+        refillGrid();
+      } else {
+        // Возвращаем обратно, если нет совпадений
+        [grid[sourceIndex], grid[targetIndex]] = [grid[targetIndex], grid[sourceIndex]];
+        selectedCell.classList.remove(color);
+        target.classList.remove(selectedColor);
+
+        selectedCell.classList.add(selectedColor);
+        target.classList.add(grid[targetIndex]);
+      }
     }
 
-    if (!isCollision(newX, newY)) {
-        player.x = newX;
-        player.y = newY;
-        stepsCount++;
-        updateStepsDisplay();
-        saveGameState();
-    }
-}
-
-function isCollision(newX, newY) {
-    return walls.some(wall => 
-        newX < wall.x + wall.width &&
-        newX + player.width > wall.x &&
-        newY < wall.y + wall.height &&
-        newY + player.height > wall.y
-    );
-}
-
-// Обновление состояния игры
-function updateGame(deltaTime) {
-    // Здесь можно добавить дополнительную логику обновления
-}
-
-// Рендеринг игры
-function renderGame() {
-    // Очистка холста
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    // Рендеринг стен
-    walls.forEach(wall => {
-        if (isWallVisible(wall)) {
-            ctx.fillStyle = 'white';
-            ctx.fillRect(wall.x, wall.y, wall.width, wall.height);
-        }
-    });
-    // Рендеринг игрока
-    ctx.fillStyle = 'blue';
-    ctx.fillRect(player.x, player.y, player.width, player.height);
-}
-
-// Основной игровой цикл
-function gameLoop(timestamp) {
-    const deltaTime = timestamp - lastTime;
-    lastTime = timestamp;
-    updateGame(deltaTime);
-    renderGame();
-    requestAnimationFrame(gameLoop);
-}
-
-// Добавляем обработчики событий для свайпов
-document.addEventListener('touchstart', handleTouchStart, false);
-document.addEventListener('touchmove', handleTouchMove, false);
-
-// Обработка клавиш
-document.addEventListener('keydown', function(event) {
-    switch (event.key) {
-        case 'ArrowUp':
-            movePlayer('up');
-            break;
-        case 'ArrowDown':
-            movePlayer('down');
-            break;
-        case 'ArrowLeft':
-            movePlayer('left');
-            break;
-        case 'ArrowRight':
-            movePlayer('right');
-            break;
-    }
-});
-
-// Функция для сохранения состояния игры
-function saveGameState() {
-    const gameState = {
-        playerPosition: { x: player.x, y: player.y },
-        stepsCount: stepsCount,
-        startTime: startTime,
-    };
-    localStorage.setItem('labyrinthState', JSON.stringify(gameState));
-}
-
-// Функция для загрузки состояния игры
-function loadGameState() {
-    const gameState = JSON.parse(localStorage.getItem('labyrinthState'));
-    if (gameState) {
-        player.x = gameState.playerPosition.x;
-        player.y = gameState.playerPosition.y;
-        stepsCount = gameState.stepsCount;
-        startTime = gameState.startTime;
-        updateStepsDisplay();
-        updateTimerDisplay();
-    }
-}
-
-// Функция для обновления отображения шагов
-function updateStepsDisplay() {
-    document.getElementById('steps').textContent = `Steps: ${stepsCount}`;
-}
-
-// Функция для обновления отображения времени
-function updateTimerDisplay() {
-    const currentTime = Date.now();
-    const elapsedTime = Math.floor((currentTime - startTime) / 1000);
-    const minutes = Math.floor(elapsedTime / 60).toString().padStart(2, '0');
-    const seconds = (elapsedTime % 60).toString().padStart(2, '0');
-    document.getElementById('timer').textContent = `Time: ${minutes}:${seconds}`;
-}
-
-setInterval(updateTimerDisplay, 1000);
-
-// Функция для проверки видимости стены
-function isWallVisible(wallPosition) {
-    const dx = wallPosition.x - player.x;
-    const dy = wallPosition.y - player.y;
-    const absDx = Math.abs(dx);
-    const absDy = Math.abs(dy);
-
-    if (absDx === 0 || absDy === 0) {
-        for (let i = 1; i < Math.max(absDx, absDy); i++) {
-            const x = player.position.x + Math.sign(dx) * i;
-            const y = player.position.y + Math.sign(dy) * i;
-            if (walls.some(w => w.x <= x && w.x + w.width >= x && w.y <= y && w.y + w.height >= y)) {
-                return false;
-            }
-        }
-        return true;
-    }
-    return false;
+    selectedCell.style.border = '';
+    selectedCell = null;
+    selectedColor = null;
+  }
 }
 
 // Инициализация игры
-function init() {
-    walls = [
-        // Пример стен
-        { x: 100, y: 100, width: 50, height: 50 },
-        { x: 200, y: 200, width: 50, height: 50 },
-        // Добавьте остальные стены
-    ];
-    loadGameState();
-    renderGame();
-}
+createGrid();
 
-// Начало игрового цикла
-window.onload = function() {
-    init();
-    requestAnimationFrame(gameLoop);
-};
+// Добавляем обработчик кликов
+document.querySelectorAll('.cell').forEach(cell => {
+  cell.addEventListener('click', handleCellClick);
+});
+
+// Тачскрин для iPhone
+document.addEventListener('touchstart', e => {
+  const target = e.target.closest('.cell');
+  if (target) handleCellClick({ target });
+});
