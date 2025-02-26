@@ -84,32 +84,69 @@
 
     // Проверяем наличие совпадений
     function checkMatches() {
-      const grid = document.querySelectorAll('.cell');
+      const grid = Array.from(document.querySelectorAll('.cell'));
       let hasMatch = false;
 
-      // Проверяем горизонтальные совпадения
-      for (let row = 0; row < gridSize; row++) {
-        for (let col = 0; col <= gridSize - 4; col++) {
-          const index = row * gridSize + col;
-          const cells = Array.from({ length: 4 }, (_, i) => grid[index + i]);
-          if (cells.every(cell => cell.textContent === cells[0].textContent && cells[0].textContent !== '')) {
-            cells.forEach(cell => cell.textContent = ''); // Удаляем совпадения
+      // Функция для нахождения всех совпадений в строке
+      function findHorizontalMatches() {
+        for (let row = 0; row < gridSize; row++) {
+          const rowStartIndex = row * gridSize;
+          const rowCells = grid.slice(rowStartIndex, rowStartIndex + gridSize);
+
+          let matchCount = 1;
+          for (let i = 1; i < rowCells.length; i++) {
+            if (rowCells[i].textContent === rowCells[i - 1].textContent && rowCells[i].textContent !== '') {
+              matchCount++;
+            } else {
+              if (matchCount >= 4) {
+                markForRemoval(rowCells.slice(i - matchCount, i));
+                hasMatch = true;
+              }
+              matchCount = 1;
+            }
+          }
+          if (matchCount >= 4) {
+            markForRemoval(rowCells.slice(-matchCount));
             hasMatch = true;
           }
         }
       }
 
-      // Проверяем вертикальные совпадения
-      for (let col = 0; col < gridSize; col++) {
-        for (let row = 0; row <= gridSize - 4; row++) {
-          const index = row * gridSize + col;
-          const cells = Array.from({ length: 4 }, (_, i) => grid[index + i * gridSize]);
-          if (cells.every(cell => cell.textContent === cells[0].textContent && cells[0].textContent !== '')) {
-            cells.forEach(cell => cell.textContent = ''); // Удаляем совпадения
+      // Функция для нахождения всех совпадений в столбце
+      function findVerticalMatches() {
+        for (let col = 0; col < gridSize; col++) {
+          const columnCells = [];
+          for (let row = 0; row < gridSize; row++) {
+            columnCells.push(grid[row * gridSize + col]);
+          }
+
+          let matchCount = 1;
+          for (let i = 1; i < columnCells.length; i++) {
+            if (columnCells[i].textContent === columnCells[i - 1].textContent && columnCells[i].textContent !== '') {
+              matchCount++;
+            } else {
+              if (matchCount >= 4) {
+                markForRemoval(columnCells.slice(i - matchCount, i));
+                hasMatch = true;
+              }
+              matchCount = 1;
+            }
+          }
+          if (matchCount >= 4) {
+            markForRemoval(columnCells.slice(-matchCount));
             hasMatch = true;
           }
         }
       }
+
+      // Отмечаем ячейки для удаления
+      function markForRemoval(cells) {
+        cells.forEach(cell => cell.textContent = '');
+      }
+
+      // Вызываем функции для поиска совпадений
+      findHorizontalMatches();
+      findVerticalMatches();
 
       if (hasMatch) {
         setTimeout(() => refillGrid(), 300); // Заполняем пустые ячейки
@@ -119,11 +156,11 @@
     // Заполняем пустые ячейки новыми элементами
     function refillGrid() {
       const grid = document.querySelectorAll('.cell');
-      grid.forEach(cell => {
-        if (cell.textContent === '') {
-          cell.textContent = getRandomColor();
+      for (let i = 0; i < grid.length; i++) {
+        if (grid[i].textContent === '') {
+          grid[i].textContent = getRandomColor();
         }
-      });
+      }
     }
 
     // Добавляем управление клавишами
