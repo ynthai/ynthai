@@ -87,78 +87,81 @@
       const grid = Array.from(document.querySelectorAll('.cell'));
       let hasMatch = false;
 
-      // Функция для нахождения всех совпадений в строке
-      function findHorizontalMatches() {
-        for (let row = 0; row < gridSize; row++) {
-          const rowStartIndex = row * gridSize;
-          const rowCells = grid.slice(rowStartIndex, rowStartIndex + gridSize);
-
-          let matchCount = 1;
-          for (let i = 1; i < rowCells.length; i++) {
-            if (rowCells[i].textContent === rowCells[i - 1].textContent && rowCells[i].textContent !== '') {
-              matchCount++;
-            } else {
-              if (matchCount >= 4) {
-                markForRemoval(rowCells.slice(i - matchCount, i));
-                hasMatch = true;
-              }
-              matchCount = 1;
-            }
-          }
-          if (matchCount >= 4) {
-            markForRemoval(rowCells.slice(-matchCount));
+      // Находим все группы одинаковых элементов
+      const visited = new Array(gridSize * gridSize).fill(false);
+      for (let i = 0; i < gridSize * gridSize; i++) {
+        if (!visited[i] && grid[i].textContent !== '') {
+          const group = findConnectedGroup(i, grid[i].textContent, visited);
+          if (group.length >= 4) {
+            group.forEach(index => (grid[index].textContent = '')); // Удаляем группу
             hasMatch = true;
           }
         }
       }
-
-      // Функция для нахождения всех совпадений в столбце
-      function findVerticalMatches() {
-        for (let col = 0; col < gridSize; col++) {
-          const columnCells = [];
-          for (let row = 0; row < gridSize; row++) {
-            columnCells.push(grid[row * gridSize + col]);
-          }
-
-          let matchCount = 1;
-          for (let i = 1; i < columnCells.length; i++) {
-            if (columnCells[i].textContent === columnCells[i - 1].textContent && columnCells[i].textContent !== '') {
-              matchCount++;
-            } else {
-              if (matchCount >= 4) {
-                markForRemoval(columnCells.slice(i - matchCount, i));
-                hasMatch = true;
-              }
-              matchCount = 1;
-            }
-          }
-          if (matchCount >= 4) {
-            markForRemoval(columnCells.slice(-matchCount));
-            hasMatch = true;
-          }
-        }
-      }
-
-      // Отмечаем ячейки для удаления
-      function markForRemoval(cells) {
-        cells.forEach(cell => cell.textContent = '');
-      }
-
-      // Вызываем функции для поиска совпадений
-      findHorizontalMatches();
-      findVerticalMatches();
 
       if (hasMatch) {
         setTimeout(() => refillGrid(), 300); // Заполняем пустые ячейки
       }
     }
 
+    // Находим все связанные элементы одного цвета
+    function findConnectedGroup(index, color, visited) {
+      const group = [];
+      const stack = [index];
+      visited[index] = true;
+
+      while (stack.length > 0) {
+        const current = stack.pop();
+        group.push(current);
+
+        const neighbors = getNeighbors(current);
+        for (const neighbor of neighbors) {
+          if (!visited[neighbor] && grid[neighbor].textContent === color) {
+            stack.push(neighbor);
+            visited[neighbor] = true;
+          }
+        }
+      }
+
+      return group;
+    }
+
+    // Получаем соседние ячейки (сверху, снизу, слева, справа)
+    function getNeighbors(index) {
+      const row = Math.floor(index / gridSize);
+      const col = index % gridSize;
+      const neighbors = [];
+
+      if (row > 0) neighbors.push(index - gridSize); // Сверху
+      if (row < gridSize - 1) neighbors.push(index + gridSize); // Снизу
+      if (col > 0) neighbors.push(index - 1); // Слева
+      if (col < gridSize - 1) neighbors.push(index + 1); // Справа
+
+      return neighbors.filter(idx => idx >= 0 && idx < gridSize * gridSize);
+    }
+
     // Заполняем пустые ячейки новыми элементами
     function refillGrid() {
       const grid = document.querySelectorAll('.cell');
-      for (let i = 0; i < grid.length; i++) {
-        if (grid[i].textContent === '') {
-          grid[i].textContent = getRandomColor();
+      for (let col = 0; col < gridSize; col++) {
+        let emptySpaces = [];
+        for (let row = 0; row < gridSize; row++) {
+          const index = row * gridSize + col;
+          if (grid[index].textContent === '') {
+            emptySpaces.push(index);
+          }
+        }
+
+        if (emptySpaces.length > 0) {
+          for (let i = emptySpaces.length - 1; i >= 0; i--) {
+            const newIndex = emptySpaces[i] - gridSize;
+            if (newIndex >= 0) {
+              grid[emptySpaces[i]].textContent = grid[newIndex].textContent;
+              grid[newIndex].textContent = '';
+            } else {
+              grid[emptySpaces[i]].textContent = getRandomColor();
+            }
+          }
         }
       }
     }
