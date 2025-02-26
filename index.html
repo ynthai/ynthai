@@ -87,7 +87,7 @@
       const grid = document.querySelectorAll('.cell');
       let hasMatch = false;
 
-      // Проверяем горизонтальные совпадения (4 в ряд)
+      // Проверяем горизонтальные совпадения
       for (let row = 0; row < gridSize; row++) {
         for (let col = 0; col <= gridSize - 4; col++) {
           const index = row * gridSize + col;
@@ -99,38 +99,13 @@
         }
       }
 
-      // Проверяем вертикальные совпадения (4 в столбец)
+      // Проверяем вертикальные совпадения
       for (let col = 0; col < gridSize; col++) {
         for (let row = 0; row <= gridSize - 4; row++) {
           const index = row * gridSize + col;
           const cells = Array.from({ length: 4 }, (_, i) => grid[index + i * gridSize]);
           if (cells.every(cell => cell.textContent === cells[0].textContent && cells[0].textContent !== '')) {
             cells.forEach(cell => cell.textContent = ''); // Удаляем совпадения
-            hasMatch = true;
-          }
-        }
-      }
-
-      // Проверяем совпадения 2x2
-      for (let row = 0; row <= gridSize - 2; row++) {
-        for (let col = 0; col <= gridSize - 2; col++) {
-          const topLeftIndex = row * gridSize + col;
-          const topRightIndex = topLeftIndex + 1;
-          const bottomLeftIndex = topLeftIndex + gridSize;
-          const bottomRightIndex = bottomLeftIndex + 1;
-
-          const topLeft = grid[topLeftIndex];
-          const topRight = grid[topRightIndex];
-          const bottomLeft = grid[bottomLeftIndex];
-          const bottomRight = grid[bottomRightIndex];
-
-          if (
-            topLeft.textContent === topRight.textContent &&
-            topLeft.textContent === bottomLeft.textContent &&
-            topLeft.textContent === bottomRight.textContent &&
-            topLeft.textContent !== ''
-          ) {
-            [topLeft, topRight, bottomLeft, bottomRight].forEach(cell => cell.textContent = '');
             hasMatch = true;
           }
         }
